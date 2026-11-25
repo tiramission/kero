@@ -8,7 +8,7 @@ import (
 
 func TestHostKeys(t *testing.T) {
 	file := `host = devbox=me@devbox
-host = build=ssh://ci@build.lab:2222 remote-control
+host = build=ssh://ci@build.lab:2222 remote-control local-download
 host = wsl=wsl://Ubuntu color=teal
 listen = tailnet://:7400
 listen = tailnet-serve://
@@ -21,7 +21,7 @@ listen-allow = tag:ci
 	}
 	want := []Host{
 		{Name: "devbox", Addr: "me@devbox"},
-		{Name: "build", Addr: "ci@build.lab:2222", RemoteControl: true},
+		{Name: "build", Addr: "ci@build.lab:2222", RemoteControl: true, LocalDownload: true},
 		{Name: "wsl", Addr: "wsl://Ubuntu", Color: "teal"},
 	}
 	if !reflect.DeepEqual(s.Hosts, want) {
@@ -35,7 +35,7 @@ listen-allow = tag:ci
 	}
 	// Written back as read, an address as ParseAddr writes it.
 	out := format(s, "")
-	for _, line := range []string{"host = build=ci@build.lab:2222 remote-control", "host = wsl=wsl://Ubuntu color=teal", "listen-allow = tag:ci"} {
+	for _, line := range []string{"host = build=ci@build.lab:2222 remote-control local-download", "host = wsl=wsl://Ubuntu color=teal", "listen-allow = tag:ci"} {
 		if !strings.Contains(out, line+"\n") {
 			t.Errorf("formatted without %q:\n%s", line, out)
 		}

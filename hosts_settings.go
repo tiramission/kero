@@ -195,6 +195,22 @@ func (a *App) hostRow(c *ui.Context, pal *palette, h *host) {
 				a.set = s
 			})
 		})
+		if h.addr.Scheme == "ssh" || h.addr.Scheme == "wsl" {
+			ui.Row(c).Gap(10).AlignItems(ui.Center).Padding(0, 0, 0, 26).Children(func() {
+				ui.Column(c).Grow(1).MinWidth(0).Gap(2).Children(func() {
+					ui.Text(c, locales.SetHostLocalDownload()).FontSize(12.5).TextColor(pal.text)
+					ui.Text(c, locales.SetHostLocalDownloadDetail(h.name)).FontSize(12).TextColor(pal.textMuted).LineHeight(1.35)
+				})
+				on, name := h.cfg.LocalDownload, h.name
+				toggle(c.Key("ld"), &on, pal).OnClick(func() {
+					s := a.set.Clone()
+					if cfg := s.Host(name); cfg != nil {
+						cfg.LocalDownload = on
+					}
+					a.set = s
+				})
+			})
+		}
 		// What fixes it, a button of its own size, under the host.
 		ui.Row(c).Padding(0, 0, 0, 26).Children(func() {
 			switch {

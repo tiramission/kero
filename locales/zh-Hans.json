@@ -612,6 +612,8 @@
   "setHostNeedsAddress": "请输入主机的地址",
   "setHostRemoteControl": "远程控制",
   "setHostRemoteControlDetail": "允许 {host} 上的程序显示会话并运行应用的操作（kero focus、kero do）",
+  "setHostLocalDownload": "通过本机下载",
+  "setHostLocalDownloadDetail": "在本机下载 Kero，再通过 SSH 或 WSL 发送到 {host}；{host} 无需自行访问发布地址",
   "setListenTitle": "将这台电脑作为主机",
   "setListen": "允许其他机器连接",
   "setListenDetail": "kerod 会在这台电脑的 Tailscale 地址上监听，供你其他机器上的 Kero 连接。只有你的 Tailscale 账户可以连接。",

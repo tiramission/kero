@@ -612,6 +612,8 @@
   "setHostNeedsAddress": "ホストのアドレスを入力してください",
   "setHostRemoteControl": "リモート操作",
   "setHostRemoteControlDetail": "{host} のプログラムにセッションの表示とアプリのアクションの実行を許可します（kero focus、kero do）",
+  "setHostLocalDownload": "このコンピュータでダウンロード",
+  "setHostLocalDownloadDetail": "このコンピュータで Kero をダウンロードし、SSH または WSL で {host} に送ります。{host} はリリースに自分でアクセスする必要はありません",
   "setListenTitle": "このコンピュータをホストにする",
   "setListen": "ほかのマシンからの接続を許可",
   "setListenDetail": "kerod は、ほかのマシンの Kero のために、このコンピュータの Tailscale アドレスで待ち受けます。接続できるのはあなたの Tailscale アカウントだけです。",

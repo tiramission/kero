@@ -26,6 +26,7 @@ import (
 	"kero/internal/build"
 	"kero/internal/client"
 	"kero/internal/proto"
+	"kero/internal/remote"
 	"kero/internal/service"
 	"kero/internal/settings"
 	"kero/internal/update"
@@ -1263,6 +1264,18 @@ func remoteDaemonCmd(sub string, args []string, host string) error {
 			version = v
 		}
 		fmt.Printf("updating Kero on %s to %s…\n", host, version)
+		set := settings.Load()
+		if h := set.Host(host); h != nil && h.LocalDownload && rc.Welcome.Host.Server {
+			_, a, err := hostAddr(host)
+			if err != nil {
+				return err
+			}
+			if _, err := remote.InstallLocal(ctx, a, version, rc.Welcome.Host.OS, rc.Welcome.Host.Arch, false); err != nil {
+				return err
+			}
+			fmt.Printf("installed: kerod on %s runs it as it restarts (kero -H %s daemon restart), its sessions with it\n", host, host)
+			return nil
+		}
 		if err := rc.Host(ctx, proto.HostRequest{Kind: proto.KindUpdate, App: version}); err != nil {
 			return err
 		}

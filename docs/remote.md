@@ -151,6 +151,16 @@ On Linux this first enables lingering (`loginctl enable-linger`), which keeps yo
 host = devbox=me@devbox remote-control
 ```
 
+### Downloads from this computer
+
+A host that cannot reach GitHub can still be installed and updated: turn on **Settings › Hosts › Download on This Computer** for it, or add `local-download` after its address:
+
+```ini
+host = devbox=me@devbox local-download
+```
+
+Kero downloads the release here, checks its signature, sends it to the host over SSH or WSL, and runs the install script with a `file://` mirror there. The host needs no network of its own for the release. It is for SSH and WSL hosts; one updated another way keeps updating that way.
+
 ### Settings
 
 Appearance, keyboard and notifications are the app's. A host's shell, `env`, scrollback and session restore come from the configuration on that host, since kerod reads them there. Run `kero config edit` on the host to change them.

@@ -345,13 +345,22 @@ func hostsCmd(args []string) error {
 		if len(f.pos) != 2 {
 			return usageErr("kero hosts install <name|address> [--version v]")
 		}
-		_, a, err := hostAddr(f.pos[1])
+		name, a, err := hostAddr(f.pos[1])
 		if err != nil {
 			return err
 		}
 		version := f.vals["version"]
 		if version == "" {
 			version = releasedVersion()
+		}
+		if h := set.Host(name); h != nil && h.LocalDownload {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer cancel()
+			out, err := remote.InstallLocal(ctx, a, version, "", "", false)
+			if out != "" {
+				fmt.Print(out)
+			}
+			return err
 		}
 		// A host of Windows, whose shell has no sh, installs with
 		// PowerShell.

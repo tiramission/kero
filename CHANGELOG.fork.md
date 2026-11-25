@@ -2,6 +2,18 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.2
+
+- Add **Settings › Hosts › Download on This Computer** (`local-download`):
+  the app downloads a release here, verifies its signature and SHA-256, sends
+  it to the host over SSH or WSL, and installs it with a `file://` mirror. A
+  host that cannot reach GitHub can now be installed and updated. Off by
+  default.
+- `kero hosts install` and `kero -H <host> daemon update` follow the same
+  setting, so the app and the command line install the same way.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.1
 
 - First release from this fork under the `YYYY.MM.N` version rule, with the

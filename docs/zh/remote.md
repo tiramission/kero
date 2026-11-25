@@ -153,6 +153,16 @@ kero daemon uninstall-service
 host = devbox=me@devbox remote-control
 ```
 
+### 通过本机下载
+
+即使主机无法访问 GitHub，也可以安装和更新：在 **设置 › 主机** 中为它打开 **通过本机下载**，或在地址后加上 `local-download`：
+
+```ini
+host = devbox=me@devbox local-download
+```
+
+Kero 会在本机下载发布包、校验签名，再通过 SSH 或 WSL 发送到主机，并在主机上用 `file://` 镜像运行安装脚本。这样主机无需自行访问发布地址。此选项适用于 SSH 和 WSL 主机；通过其他方式更新的主机仍按原方式更新。
+
 ### 设置
 
 外观、键盘和通知属于应用的设置。主机的 shell、`env`、回滚缓冲和会话恢复则来自该主机上的配置，因为 kerod 在那里读取它们。在主机上运行 `kero config edit` 即可修改。

@@ -320,6 +320,27 @@ func (a *App) install(h *host) {
 	if !released(version) {
 		version = ""
 	}
+	if h.cfg.LocalDownload {
+		h.busy = "install"
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+			defer cancel()
+			out, err := remote.InstallLocal(ctx, h.addr, version, "", "", true)
+			a.update(func() {
+				h.busy = ""
+				if !slices.Contains(a.hosts, h) {
+					return
+				}
+				if err != nil {
+					a.toast(locales.HostInstallFailed(h.name, lastLine(out, err)))
+					return
+				}
+				a.toast(locales.HostInstalled(h.name))
+				a.reconnectHost(h)
+			})
+		}()
+		return
+	}
 	cmd, err := remote.InstallCommand(h.addr, version, true)
 	if err != nil {
 		a.toast(err.Error())
@@ -334,20 +355,26 @@ func (a *App) install(h *host) {
 				return
 			}
 			if err != nil {
-				msg := strings.TrimSpace(string(out))
-				if i := strings.LastIndex(msg, "\n"); i >= 0 {
-					msg = msg[i+1:]
-				}
-				if msg == "" {
-					msg = err.Error()
-				}
-				a.toast(locales.HostInstallFailed(h.name, msg))
+				a.toast(locales.HostInstallFailed(h.name, lastLine(string(out), err)))
 				return
 			}
 			a.toast(locales.HostInstalled(h.name))
 			a.reconnectHost(h)
 		})
 	}()
+}
+
+// lastLine is the last line of a command's output, else its error, for a
+// toast.
+func lastLine(out string, err error) string {
+	msg := strings.TrimSpace(out)
+	if i := strings.LastIndex(msg, "\n"); i >= 0 {
+		msg = msg[i+1:]
+	}
+	if msg == "" {
+		msg = err.Error()
+	}
+	return msg
 }
 
 // hostVersionDetail says how Kero on a host differs from this app, and
@@ -426,15 +453,25 @@ func (a *App) hostRequest(h *host, what string) {
 	}
 	h.busy = what
 	version := mygo.App.Version()
+	local := what == "update" && h.cfg.LocalDownload && h.info.Server && released(version)
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 		defer cancel()
 		var err error
-		if what == "update" {
-			err = rc.Host(ctx, proto.HostRequest{Kind: proto.KindUpdate, App: version})
-		}
-		if err == nil {
-			err = rc.Host(ctx, proto.HostRequest{Kind: proto.KindRestart})
+		if local {
+			_, lerr := remote.InstallLocal(ctx, h.addr, version, h.info.OS, h.info.Arch, true)
+			if lerr != nil {
+				err = lerr
+			} else if rerr := rc.Host(ctx, proto.HostRequest{Kind: proto.KindRestart}); rerr != nil {
+				err = rerr
+			}
+		} else {
+			if what == "update" {
+				err = rc.Host(ctx, proto.HostRequest{Kind: proto.KindUpdate, App: version})
+			}
+			if err == nil {
+				err = rc.Host(ctx, proto.HostRequest{Kind: proto.KindRestart})
+			}
 		}
 		a.update(func() {
 			h.busy = ""

@@ -135,6 +135,10 @@ type Host struct {
 	// and kero do, which remote-control lets this machine's: off unless the
 	// user trusts the host with it.
 	RemoteControl bool `json:"remoteControl,omitempty"`
+	// LocalDownload downloads the server build on this computer and sends
+	// it to the host over SSH or WSL, so that the host need not reach the
+	// releases itself: off unless the user chooses it.
+	LocalDownload bool `json:"localDownload,omitempty"`
 	// Color marks the host's sessions in the sidebar and its panes: one of
 	// HostColors, "" for the one its name picks.
 	Color string `json:"color,omitempty"`
@@ -605,8 +609,8 @@ func keroThemeName(bg string) string {
 }
 
 // ParseHost reads a host as the configuration's host key writes it:
-// name=address, then its options: remote-control, color=<one of
-// HostColors>.
+// name=address, then its options: remote-control, local-download,
+// color=<one of HostColors>.
 func ParseHost(line string) (Host, error) {
 	name, rest, ok := strings.Cut(strings.TrimSpace(line), "=")
 	name = strings.TrimSpace(name)
@@ -626,12 +630,14 @@ func ParseHost(line string) (Host, error) {
 		switch k, v, _ := strings.Cut(o, "="); {
 		case o == "remote-control":
 			h.RemoteControl = true
+		case o == "local-download":
+			h.LocalDownload = true
 		case k == "color" && slices.Contains(HostColors, v):
 			h.Color = v
 		case k == "color":
 			return Host{}, fmt.Errorf("%s: no color %q (%s)", name, v, strings.Join(HostColors, ", "))
 		default:
-			return Host{}, fmt.Errorf("%s: no option %q (remote-control, color=…)", name, o)
+			return Host{}, fmt.Errorf("%s: no option %q (remote-control, local-download, color=…)", name, o)
 		}
 	}
 	return h, nil

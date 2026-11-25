@@ -83,6 +83,18 @@ func InstallScript(version string) string { return script(version, "install-serv
 // server build on Windows: `irm <it> | iex`, in PowerShell.
 func InstallScriptPS(version string) string { return script(version, "install-server.ps1") }
 
+// Fetch downloads a file of a version's release: the archive, its .sig,
+// or its .sha256. It is for a machine that installs a host from its own
+// network, as the host would otherwise download it.
+func Fetch(ctx context.Context, version, name string) ([]byte, error) {
+	return get(ctx, URL(version, name), maxArchive)
+}
+
+// FetchScript downloads the install script of a version.
+func FetchScript(ctx context.Context, version string) ([]byte, error) {
+	return get(ctx, InstallScript(version), 1<<20)
+}
+
 func script(version, name string) string {
 	if version == "" {
 		return "https://github.com/" + Repo + "/releases/latest/download/" + name

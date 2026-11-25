@@ -1102,6 +1102,15 @@
       }
     }
   },
+  "setHostLocalDownload": "Download on This Computer",
+  "setHostLocalDownloadDetail": "Download Kero here and send it to {host} over SSH or WSL, so {host} need not reach the releases itself",
+  "@setHostLocalDownloadDetail": {
+    "placeholders": {
+      "host": {
+        "type": "String"
+      }
+    }
+  },
   "setListenTitle": "This Computer as a Host",
   "setListen": "Let other machines connect",
   "setListenDetail": "kerod listens at this computer's Tailscale addresses, for Kero on your other machines. Only your Tailscale account may connect.",

@@ -6130,6 +6130,28 @@ func (msgs Messages) SetHostRemoteControlDetail(host string) string {
 	return Catalog.Format(msgs.locale, "setHostRemoteControlDetail", map[string]any{"host": host})
 }
 
+// SetHostLocalDownload says "Download on This Computer"
+// in the language the app shows.
+func SetHostLocalDownload() string { return In(i18n.Locale()).SetHostLocalDownload() }
+
+// SetHostLocalDownload says "Download on This Computer"
+// in the language of msgs.
+func (msgs Messages) SetHostLocalDownload() string {
+	return Catalog.Format(msgs.locale, "setHostLocalDownload", nil)
+}
+
+// SetHostLocalDownloadDetail says "Download Kero here and send it to {host} over SSH or WSL, so {host} need not reach the releases itself"
+// in the language the app shows.
+func SetHostLocalDownloadDetail(host string) string {
+	return In(i18n.Locale()).SetHostLocalDownloadDetail(host)
+}
+
+// SetHostLocalDownloadDetail says "Download Kero here and send it to {host} over SSH or WSL, so {host} need not reach the releases itself"
+// in the language of msgs.
+func (msgs Messages) SetHostLocalDownloadDetail(host string) string {
+	return Catalog.Format(msgs.locale, "setHostLocalDownloadDetail", map[string]any{"host": host})
+}
+
 // SetListenTitle says "This Computer as a Host"
 // in the language the app shows.
 func SetListenTitle() string { return In(i18n.Locale()).SetListenTitle() }
