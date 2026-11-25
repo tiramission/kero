@@ -1,13 +1,14 @@
 {
   "name": "Kero",
   "identifier": "sh.kero",
-  "version": "2.1.36",
+  "version": "2026.11.25",
   "out": "build",
   "i18n": {
     "dir": "locales",
     "source": "en"
   },
   "updates": {
+    "changelog": "CHANGELOG.fork.md",
     "publicKey": "kccwFdNR72cuDWmXBMj3h3RrOBbgMXBFclcyOTRhVpY=",
     "github": "tiramission/kero"
   },
