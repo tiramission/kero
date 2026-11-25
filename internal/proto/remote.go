@@ -109,7 +109,7 @@ type (
 	// ~/… for the home, "" for the home.
 	FSListParams struct {
 		Dir    string `json:"dir"`
-		Hidden bool   `json:"hidden,omitempty"` // dotfiles too
+		Hidden bool   `json:"hidden,omitempty"` // hidden entries too
 		// Ignored marks the entries git ignores (FSEntry.Ignored).
 		Ignored bool `json:"ignored,omitempty"`
 	}
@@ -122,6 +122,8 @@ type (
 	FSEntry struct {
 		Name string `json:"name"`
 		Dir  bool   `json:"dir,omitempty"`
+		// Hidden marks a dotfile, or one Windows' hidden attribute hides.
+		Hidden bool `json:"hidden,omitempty"`
 		// Repo tells a directory that holds a git repository.
 		Repo bool `json:"repo,omitempty"`
 		// Ignored tells an entry git ignores, as FSListParams.Ignored

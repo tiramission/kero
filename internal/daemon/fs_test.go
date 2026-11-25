@@ -14,6 +14,45 @@ import (
 	"kero/internal/proto"
 )
 
+func TestFSListWindowsHiddenAttribute(t *testing.T) {
+	if runtime.GOOS != "windows" {
+		t.Skip("Windows' hidden attribute is the host's")
+	}
+	dir := t.TempDir()
+	path := filepath.Join(dir, "hidden.txt")
+	if err := os.WriteFile(path, []byte("x"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if out, err := exec.Command("cmd", "/c", "attrib", "+h", path).CombinedOutput(); err != nil {
+		t.Fatalf("attrib +h: %v: %s", err, out)
+	}
+	l, err := fsList(proto.FSListParams{Dir: dir, Hidden: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !markedHidden(l.Entries, "hidden.txt") {
+		t.Errorf("Windows' hidden file is not marked hidden: %+v", l.Entries)
+	}
+	l, err = fsList(proto.FSListParams{Dir: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, e := range l.Entries {
+		if e.Name == "hidden.txt" {
+			t.Errorf("Windows' hidden file is listed without Hidden: %+v", l.Entries)
+		}
+	}
+}
+
+func markedHidden(entries []proto.FSEntry, name string) bool {
+	for _, e := range entries {
+		if e.Name == name && e.Hidden {
+			return true
+		}
+	}
+	return false
+}
+
 func TestHostPath(t *testing.T) {
 	home := proto.Home()
 	abs := filepath.Join(home, "x")
@@ -58,6 +97,9 @@ func TestFSListAndStat(t *testing.T) {
 	}
 	if l, _ := fsList(proto.FSListParams{Dir: dir, Hidden: true}); len(l.Entries) != 5 {
 		t.Errorf("with hidden: %d entries", len(l.Entries))
+	}
+	if l, _ := fsList(proto.FSListParams{Dir: dir, Hidden: true}); !markedHidden(l.Entries, ".hidden") {
+		t.Errorf("a dotfile is not marked hidden: %+v", l.Entries)
 	}
 	if _, err := fsList(proto.FSListParams{Dir: filepath.Join(dir, "none")}); err == nil {
 		t.Error("listed a directory that is none")

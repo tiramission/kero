@@ -1,8 +1,8 @@
 name: Publish release
 
-# Run by hand once the Release run of a version succeeded: it publishes
-# the draft release of mygo.json's version on the branch it runs on, as
-# step 6 of RELEASING.md does with gh release edit.
+# Run by hand if the Release run failed before publishing its draft: it
+# publishes the draft of mygo.json's version with the notes from
+# CHANGELOG.fork.md, as the Release workflow's publish job does.
 on:
   workflow_dispatch:
 
@@ -18,10 +18,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="v$(jq -r .version mygo.json)"
+          set -euo pipefail
+          version="$(jq -r .version mygo.json)"
+          tag="v$version"
+          notes="$RUNNER_TEMP/release-notes.md"
+          awk -v version="$version" '
+            { line=$0; sub(/\r$/, "", line) }
+            line == "## " version { found=1; next }
+            found && line ~ /^## / { exit }
+            found { print }
+          ' CHANGELOG.fork.md | sed 's/\r$//' > "$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::CHANGELOG.fork.md has no section for $tag"
+            exit 1
+          fi
           draft="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft --jq .isDraft)"
           if [ "$draft" != "true" ]; then
             echo "::error::$tag has no draft release to publish"
             exit 1
           fi
-          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --draft=false
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes" --draft=false

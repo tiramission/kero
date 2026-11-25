@@ -168,7 +168,7 @@ func (a *App) filesSide(c *ui.Context, pal *palette, s *proto.Session) {
 			if e.Dir && e.Name == ".git" {
 				continue
 			}
-			if a.prefs.FilesHidden && strings.HasPrefix(e.Name, ".") {
+			if a.prefs.FilesHidden && (e.Hidden || strings.HasPrefix(e.Name, ".")) {
 				continue
 			}
 			it := fileItem{FSEntry: e, path: h.joinPath(dir, e.Name), rel: path.Join(rel, e.Name), parent: dir, parentRel: rel, depth: depth}

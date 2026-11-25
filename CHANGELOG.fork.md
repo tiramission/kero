@@ -2,6 +2,18 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.6
+
+- Releases publish themselves: once the builds, tests and asset check of
+  a tag pass, the Release workflow takes the notes from the version's
+  section of `CHANGELOG.fork.md` and publishes the draft. A failed run
+  leaves its draft for a rerun or the Publish release workflow.
+- Files also hides entries that Windows' hidden file attribute hides, not
+  only dotfiles, when its eye button hides hidden entries. `fs.list` marks
+  them so a host's files keep their Windows hidden state.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.5
 
 - Files has an eye button in its header: it hides dotfiles and shows them

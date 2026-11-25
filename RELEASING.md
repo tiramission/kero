@@ -1,21 +1,24 @@
 # Releasing Kero
 
 A release is a tag: pushing `vX.Y.Z` runs the Release workflow
-(`.github/workflows/release.yml`), which builds the app for macOS, Windows
-and Linux, the server build for each platform, runs the tests, and leaves
-it all in a draft release. Publishing the draft releases it.
+(`.github/workflows/release.yml`), which builds the app for Windows and
+Linux, the server build for each platform, runs the tests, takes its notes
+from `CHANGELOG.fork.md`, and publishes the release once the assets are
+checked. There is no draft left to publish by hand.
 
 ## Steps
 
 1. Pick the version: a patch (2.1.4 → 2.1.5) for fixes and small
    changes, a minor for features.
 2. Set it in `mygo.json` (`"version"`).
-3. Add its section to the top of `CHANGELOG.md`: what changed since the
-   last release (`git log vX.Y.Z..HEAD`), for the people who use Kero,
-   not for who reads the code. Name settings as the app shows them
+3. Add its section to the top of `CHANGELOG.fork.md`: what changed since
+   the last release (`git log vX.Y.Z..HEAD`), for the people who use
+   Kero, not for who reads the code. Name settings as the app shows them
    (Settings › Hosts), credit outside contributors (Thanks @name), and
    say when hosts get a change with their next update. Leave out what
    changes nothing a user would notice, and fixes not confirmed to work.
+   The section's body is the release's notes: its heading, `## X.Y.Z`,
+   is what the workflow finds.
 4. Commit both as `Release X.Y.Z`, tag it `vX.Y.Z`, and push `main` and
    the tag:
 
@@ -26,27 +29,20 @@ it all in a draft release. Publishing the draft releases it.
    git push origin vX.Y.Z
    ```
 
-5. Wait for the Release run of the tag to finish (about 5 minutes):
+5. Wait for the Release run of the tag to finish (about 6 minutes):
 
    ```sh
    gh run list --workflow release.yml --limit 1
    gh run watch <run id> --exit-status
    ```
 
-6. Once every job succeeded, publish the draft, without asking:
+   The workflow publishes the draft itself, without asking, after the
+   assets job passes. If a job failed, fix it and rerun the tag's run; a
+   tested release publishes when it succeeds.
 
-   ```sh
-   gh release edit vX.Y.Z --draft=false
-   ```
-
-   Where `gh` can't edit releases, run the Publish release workflow
-   (`.github/workflows/publish-release.yml`) on `main` instead: it
-   publishes the draft of `mygo.json`'s version.
-
-   If a job failed, leave the draft unpublished and report what failed.
-   Fixed, the workflow can run again by hand (Run workflow on `main`),
-   which replaces the draft and moves the tag to that commit; a
-   published release stays as it is.
+   If only the publish job failed, run the Publish release workflow
+   (`.github/workflows/publish-release.yml`) on `main`; it publishes the
+   draft with the same notes from `CHANGELOG.fork.md`.
 
 The tag must match `mygo.json`'s version, or the run stops at its first
 job. Kero is released, so changes keep older apps, kerods and config

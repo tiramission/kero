@@ -156,3 +156,31 @@ jobs:
           for w in $want; do
             echo "$names" | grep -qxF "$w" || { echo "::error::v$version has no $w"; exit 1; }
           done
+
+  # The changelog is the release's notes, and a checked release publishes
+  # itself: a tag is not left as a draft for someone to edit and publish.
+  publish:
+    needs: [assets]
+    name: Publish the release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Publish with the changelog's notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(jq -r .version mygo.json)"
+          tag="v$version"
+          notes="$RUNNER_TEMP/release-notes.md"
+          awk -v version="$version" '
+            { line=$0; sub(/\r$/, "", line) }
+            line == "## " version { found=1; next }
+            found && line ~ /^## / { exit }
+            found { print }
+          ' CHANGELOG.fork.md | sed 's/\r$//' > "$notes"
+          if ! grep -q '[^[:space:]]' "$notes"; then
+            echo "::error::CHANGELOG.fork.md has no section for $tag"
+            exit 1
+          fi
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes" --draft=false

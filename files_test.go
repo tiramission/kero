@@ -711,28 +711,29 @@ func TestFilesHidesDotfiles(t *testing.T) {
 	h := a.hostOf(s.ID)
 	a.side.files.dirs = map[string]*dirList{
 		filesKey(h, "/tmp/demo"): {entries: []proto.FSEntry{
-			{Name: ".env"},
+			{Name: ".env", Hidden: true},
 			{Name: ".git", Dir: true},
+			{Name: "hidden.txt", Hidden: true},
 			{Name: "main.go"},
 		}},
 	}
 	tt := ui.NewTester(a.view, 1280, 720)
 	tt.Frame()
-	if !tt.HasText(".env") {
-		t.Fatalf("Files hides a dotfile by default; texts %q", tt.Texts())
+	if !tt.HasText(".env") || !tt.HasText("hidden.txt") {
+		t.Fatalf("Files hides hidden entries by default; texts %q", tt.Texts())
 	}
 	if err := tt.Click(locales.PickerHideHidden()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if tt.HasText(".env") || !a.prefs.FilesHidden {
+	if tt.HasText(".env") || tt.HasText("hidden.txt") || !a.prefs.FilesHidden {
 		t.Fatalf("the button hid nothing: hidden %v; texts %q", a.prefs.FilesHidden, tt.Texts())
 	}
 	if err := tt.Click(locales.PickerShowHidden()); err != nil {
 		t.Fatal(err)
 	}
 	tt.Frame()
-	if !tt.HasText(".env") || a.prefs.FilesHidden {
+	if !tt.HasText(".env") || !tt.HasText("hidden.txt") || a.prefs.FilesHidden {
 		t.Fatalf("the button showed nothing: hidden %v; texts %q", a.prefs.FilesHidden, tt.Texts())
 	}
 }

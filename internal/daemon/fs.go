@@ -56,10 +56,11 @@ func fsList(p proto.FSListParams) (proto.FSList, error) {
 	repos := 0
 	for _, e := range entries {
 		name := e.Name()
-		if !p.Hidden && strings.HasPrefix(name, ".") {
+		hidden := strings.HasPrefix(name, ".") || entryHidden(dir, name)
+		if !p.Hidden && hidden {
 			continue
 		}
-		fe := proto.FSEntry{Name: name, Dir: e.IsDir()}
+		fe := proto.FSEntry{Name: name, Dir: e.IsDir(), Hidden: hidden}
 		if e.Type()&os.ModeSymlink != 0 {
 			if st, err := os.Stat(filepath.Join(dir, name)); err == nil {
 				fe.Dir = st.IsDir()
