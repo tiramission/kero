@@ -8,14 +8,10 @@
     "source": "en"
   },
   "updates": {
-    "publicKey": "WzJsOGNIuf6mcEqo5ff8jub+NoQQOEk4JXreLPYjgyQ=",
-    "github": "egoist/kero"
+    "publicKey": "kccwFdNR72cuDWmXBMj3h3RrOBbgMXBFclcyOTRhVpY=",
+    "github": "tiramission/kero"
   },
   "macos": {
-    "signingIdentity": "Developer ID Application: xinyu zeng (GJE9R5VE87)",
-    "notarize": {
-      "keychainProfile": "NOTARY"
-    },
     "entitlements": "entitlements.plist",
     "infoPlist": {
       "NSMicrophoneUsageDescription": "A program running in Kero would like to use the microphone.",
