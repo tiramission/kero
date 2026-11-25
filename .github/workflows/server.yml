@@ -42,9 +42,6 @@ jobs:
         include:
           - { os: linux, arch: amd64, runner: ubuntu-latest }
           - { os: linux, arch: arm64, runner: ubuntu-24.04-arm }
-          - { os: darwin, arch: arm64, runner: macos-latest }
-          # Intel's, through Rosetta, which uname -m then tells.
-          - { os: darwin, arch: amd64, runner: macos-latest, as: arch -x86_64 }
           - { os: windows, arch: amd64, runner: windows-latest }
           - { os: windows, arch: arm64, runner: windows-11-arm }
     runs-on: ${{ matrix.runner }}
