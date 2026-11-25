@@ -54,6 +54,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # The builds upload the one SHA256SUMS of the release, merging the
+      # lines already there: at the same time, each would see none and try
+      # to create it. One at a time, the second merges the first's.
+      max-parallel: 1
       matrix:
         include:
           - { name: Windows, os: ubuntu-latest, platform: "windows/amd64,windows/arm64" }
