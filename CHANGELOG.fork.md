@@ -2,6 +2,17 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.5
+
+- Files has an eye button in its header: it hides dotfiles and shows them
+  again, and remembers the choice. It starts showing them, as Files has.
+- A diff of a file under a Windows symbolic link or junction opens again.
+  Reading a path no longer resolves its way out of the worktree, and a
+  working file that Windows cannot read through the link falls back to the
+  git patch; writes still refuse paths that lead outside the worktree.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.4
 
 - Fix the platform probe of a Windows host over SSH: PowerShell now prints

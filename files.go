@@ -168,6 +168,9 @@ func (a *App) filesSide(c *ui.Context, pal *palette, s *proto.Session) {
 			if e.Dir && e.Name == ".git" {
 				continue
 			}
+			if a.prefs.FilesHidden && strings.HasPrefix(e.Name, ".") {
+				continue
+			}
 			it := fileItem{FSEntry: e, path: h.joinPath(dir, e.Name), rel: path.Join(rel, e.Name), parent: dir, parentRel: rel, depth: depth}
 			it.open = e.Dir && fs.open[filesKey(h, it.path)]
 			it.edit = fs.edit != nil && fs.edit.op == editRename && fs.edit.host == h.name && fs.edit.path == it.path
@@ -181,6 +184,15 @@ func (a *App) filesSide(c *ui.Context, pal *palette, s *proto.Session) {
 
 	ui.Row(c.Key("root")).Height(28).Shrink(0).Padding(0, 10, 6, 16).Gap(0).AlignItems(ui.Center).Children(func() {
 		ui.Text(c, h.shortDir(root)).FontSize(12.5).TextColor(pal.textFaint).SingleLine().Ellipsis("…").MinWidth(0).Grow(1).Tooltip(root)
+		hidden := a.prefs.FilesHidden
+		hiddenIcon, hiddenLabel := hideHiddenIcon, locales.PickerHideHidden()
+		if hidden {
+			hiddenIcon, hiddenLabel = showHiddenIcon, locales.PickerShowHidden()
+		}
+		iconButton(c, "show-hidden", hiddenIcon, hiddenLabel, pal, func() {
+			a.prefs.FilesHidden = !a.prefs.FilesHidden
+			a.savePrefs()
+		})
 		iconButton(c, "new-file", newFileIcon, locales.FilesNewFile(), pal, func() { a.startCreate(s, p.ID, root, "", false) })
 		iconButton(c, "new-folder", newFolderIcon, locales.FilesNewFolder(), pal, func() { a.startCreate(s, p.ID, root, "", true) })
 		iconButton(c, "fold-folders", collapseIcon, locales.FilesCollapseFolders(), pal, func() {

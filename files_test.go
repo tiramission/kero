@@ -700,6 +700,43 @@ func TestUnsavedOutlastQuit(t *testing.T) {
 	}
 }
 
+// The Files tab shows dotfiles, as it always has, and its header button
+// hides them, then shows them again. The choice stays in the preferences.
+func TestFilesHidesDotfiles(t *testing.T) {
+	a := testApp(t)
+	s := &a.st.Sessions[0]
+	g := &proto.GitInfo{Root: "/tmp/demo", Branch: "main", Default: "main"}
+	s.Panes[0].Git, s.Panes[1].Git = g, g
+	a.prefs.Side = sideFiles
+	h := a.hostOf(s.ID)
+	a.side.files.dirs = map[string]*dirList{
+		filesKey(h, "/tmp/demo"): {entries: []proto.FSEntry{
+			{Name: ".env"},
+			{Name: ".git", Dir: true},
+			{Name: "main.go"},
+		}},
+	}
+	tt := ui.NewTester(a.view, 1280, 720)
+	tt.Frame()
+	if !tt.HasText(".env") {
+		t.Fatalf("Files hides a dotfile by default; texts %q", tt.Texts())
+	}
+	if err := tt.Click(locales.PickerHideHidden()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if tt.HasText(".env") || !a.prefs.FilesHidden {
+		t.Fatalf("the button hid nothing: hidden %v; texts %q", a.prefs.FilesHidden, tt.Texts())
+	}
+	if err := tt.Click(locales.PickerShowHidden()); err != nil {
+		t.Fatal(err)
+	}
+	tt.Frame()
+	if !tt.HasText(".env") || a.prefs.FilesHidden {
+		t.Fatalf("the button showed nothing: hidden %v; texts %q", a.prefs.FilesHidden, tt.Texts())
+	}
+}
+
 // The Files tab makes files and folders, renames and deletes them: New
 // File in its header puts a field for the name at the top of the root,
 // which Return makes, through kerod; a row's menu offers the same in its

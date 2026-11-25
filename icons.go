@@ -64,6 +64,8 @@ var (
 	copyIcon         = glyph("f7-doc-on-doc")
 	linkIcon         = glyph("f7-arrow-up-right")
 	editIcon         = glyph("f7-pencil")
+	showHiddenIcon   = icon(`<path d="M1.5 8s2.5-4 6.5-4 6.5 4 6.5 4-2.5 4-6.5 4S1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="2"/>`)
+	hideHiddenIcon   = icon(`<path d="M1.5 8s2.5-4 6.5-4 6.5 4 6.5 4-2.5 4-6.5 4S1.5 8 1.5 8Z"/><circle cx="8" cy="8" r="2"/><path d="m3 13 10-10"/>`)
 	archiveIcon      = icon(`<rect x="2" y="3" width="12" height="3" rx="1"/><path d="M3 6v6.5a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6M6.5 9h3"/>`)
 )
 

@@ -198,19 +198,26 @@ type Text struct {
 // FileText returns a file's text in rev, from oldPath ("" for path), and
 // in the working tree now.
 func (r Repo) FileText(ctx context.Context, rev, path, oldPath string) (Text, error) {
-	full, err := r.local(path)
+	full, err := r.localRead(path)
 	if err != nil {
 		return Text{}, err
 	}
 	if oldPath == "" {
 		oldPath = path
 	}
-	if _, err := r.local(oldPath); err != nil {
+	if _, err := r.localRead(oldPath); err != nil {
 		return Text{}, err
 	}
 	var t Text
 	nb, err := readWorking(full)
 	if err != nil && !os.IsNotExist(err) {
+		// A path is not always readable through the link or junction it
+		// names, as on Windows. The diff still is: git has both sides in
+		// its objects, so show it as a patch rather than fail to show
+		// the file.
+		if p, perr := r.Patch(ctx, rev, "", path); perr == nil && p != "" {
+			return Text{Large: true, Patch: p}, nil
+		}
 		return Text{}, err
 	}
 	t.Hash = Hash(nb)
@@ -265,7 +272,7 @@ func Hash(b []byte) string {
 // Changed reports whether a file of the working tree is other than in
 // rev, as git keeps it: one that a diff with rev shows.
 func (r Repo) Changed(ctx context.Context, rev, path string) (bool, error) {
-	full, err := r.local(path)
+	full, err := r.localRead(path)
 	if err != nil {
 		return false, err
 	}
@@ -446,10 +453,11 @@ func (r Repo) Revert(ctx context.Context, rev, path, hash, text string) error {
 	return os.Chmod(full, fi.Mode().Perm()&^0o111|mode&0o111)
 }
 
-// local returns the file of the worktree a slash-separated path names,
-// refusing one outside it, through .. or a symbolic link, or in its git
-// directory.
-func (r Repo) local(p string) (string, error) {
+// localPath returns the path of the worktree a slash-separated path names,
+// refusing one outside it through .., an absolute path, or its git
+// directory. It follows no link: the caller decides what a link in the
+// path may lead to.
+func (r Repo) localPath(p string) (string, error) {
 	slashed := p
 	if filepath.Separator == '\\' {
 		slashed = strings.ReplaceAll(p, `\`, "/")
@@ -459,7 +467,25 @@ func (r Repo) local(p string) (string, error) {
 		strings.EqualFold(clean, ".git") || strings.HasPrefix(strings.ToLower(clean), ".git/") {
 		return "", errors.New("not a path in the worktree: " + p)
 	}
-	full := filepath.Join(r.Root, filepath.FromSlash(clean))
+	return filepath.Join(r.Root, filepath.FromSlash(clean)), nil
+}
+
+// localRead returns a file of the worktree to read. A link or junction in
+// its path may lead outside the worktree, as one on Windows can, though
+// Files shows what git shows there. Only reads use this: writes go through
+// local, which refuses such a path.
+func (r Repo) localRead(p string) (string, error) {
+	return r.localPath(p)
+}
+
+// local returns the file of the worktree a slash-separated path names,
+// refusing one outside it, through .. or a symbolic link, or in its git
+// directory.
+func (r Repo) local(p string) (string, error) {
+	full, err := r.localPath(p)
+	if err != nil {
+		return "", err
+	}
 	// The directory holding it, with its links resolved, must be the
 	// worktree's.
 	root, err := filepath.EvalSymlinks(r.Root)
