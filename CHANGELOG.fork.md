@@ -2,6 +2,16 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.3
+
+- Fix installing or updating a host over SSH when OpenSSH prints its
+  known-host warning: the warning is no longer read as the host's platform,
+  and no longer becomes part of a temporary path.
+- `kero hosts ls` shows each host's **Local Download** state, and
+  `kero hosts add --local-download` sets it.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.2
 
 - Add **Settings › Hosts › Download on This Computer** (`local-download`):

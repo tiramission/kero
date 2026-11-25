@@ -147,15 +147,28 @@ func ProbePlatform(ctx context.Context, a Addr, batch bool) (string, string, err
 	if err != nil {
 		return "", "", err
 	}
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	return parseUnames(out)
+}
+
+// parseUnames reads the os and machine uname says, skipping the warnings
+// an SSH client may print beside them, as one of a host added to its
+// known_hosts.
+func parseUnames(out []byte) (string, string, error) {
+	var lines []string
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(strings.ToLower(line), "warning:") {
+			continue
+		}
+		lines = append(lines, line)
+		if len(lines) == 2 {
+			break
+		}
+	}
 	if len(lines) < 2 {
 		return "", "", fmt.Errorf("the host did not say what it runs: %q", strings.TrimSpace(string(out)))
 	}
-	osName, arch, err := ParsePlatform(lines[0], lines[1])
-	if err != nil {
-		return "", "", err
-	}
-	return osName, arch, nil
+	return ParsePlatform(lines[0], lines[1])
 }
 
 // ParsePlatform reads the os and machine uname says, as a goos and goarch
@@ -337,11 +350,14 @@ func sshRun(ctx context.Context, a Addr, batch bool, command string, stdin []byt
 		cmd.Stdin = bytes.NewReader(stdin)
 	}
 	hideWindow(cmd)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return out, commandError(out, err)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	if err := cmd.Run(); err != nil {
+		return stdout.Bytes(), commandError(append(stdout.Bytes(), stderr.Bytes()...), err)
 	}
-	return out, nil
+	// stderr may hold a warning of the SSH client's, as one of a host it
+	// added to known_hosts, which is no part of what the command printed.
+	return stdout.Bytes(), nil
 }
 
 func wslRun(ctx context.Context, a Addr, command string, stdin []byte) ([]byte, error) {
@@ -355,11 +371,12 @@ func wslRun(ctx context.Context, a Addr, command string, stdin []byte) ([]byte, 
 		cmd.Stdin = bytes.NewReader(stdin)
 	}
 	hideWindow(cmd)
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		return out, commandError(out, err)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	if err := cmd.Run(); err != nil {
+		return stdout.Bytes(), commandError(append(stdout.Bytes(), stderr.Bytes()...), err)
 	}
-	return out, nil
+	return stdout.Bytes(), nil
 }
 
 func commandError(out []byte, err error) error {

@@ -245,7 +245,7 @@ func hostDaemonState(c *client.Client) {
 // configuration keeps (host = name=address).
 func hostsCmd(args []string) error {
 	f, err := parse(args, map[string]string{"version": "version"},
-		map[string]string{"remote-control": "rc", "json": "json"})
+		map[string]string{"remote-control": "rc", "local-download": "ld", "json": "json"})
 	if err != nil {
 		return err
 	}
@@ -267,23 +267,37 @@ func hostsCmd(args []string) error {
 			return nil
 		}
 		w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
-		fmt.Fprintln(w, "NAME\tADDRESS\tREMOTE CONTROL")
+		fmt.Fprintln(w, "NAME\tADDRESS\tREMOTE CONTROL\tLOCAL DOWNLOAD")
 		for _, h := range set.Hosts {
 			rc := "off"
 			if h.RemoteControl {
 				rc = "on"
 			}
-			fmt.Fprintf(w, "%s\t%s\t%s\n", h.Name, h.Addr, rc)
+			download := "-"
+			if a, err := remote.ParseAddr(h.Addr); err == nil && (a.Scheme == "ssh" || a.Scheme == "wsl") {
+				download = "off"
+				if h.LocalDownload {
+					download = "on"
+				}
+			}
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", h.Name, h.Addr, rc, download)
 		}
 		return w.Flush()
 
 	case "add":
 		if len(f.pos) != 3 {
-			return usageErr("kero hosts add <name> <address> [--remote-control]")
+			return usageErr("kero hosts add <name> <address> [--remote-control] [--local-download]")
 		}
 		line := f.pos[1] + "=" + f.pos[2]
 		if f.set["rc"] {
 			line += " remote-control"
+		}
+		if f.set["ld"] {
+			a, err := remote.ParseAddr(f.pos[2])
+			if err != nil || (a.Scheme != "ssh" && a.Scheme != "wsl") {
+				return usageErr("--local-download needs an SSH or WSL host")
+			}
+			line += " local-download"
 		}
 		h, err := settings.ParseHost(line)
 		if err != nil {

@@ -151,9 +151,10 @@ Usage:
                                 teach coding agents to use kero
   kero clients [--json]         list who is connected to kerod
   kero hosts [ls]               the other machines Kero reaches
-  kero hosts add <name> <address> [--remote-control]
+  kero hosts add <name> <address> [--remote-control] [--local-download]
                                 save one: [user@]host or ssh://… over SSH,
-                                wsl://distro, http(s)://… for a listener
+                                wsl://distro, http(s)://… for a listener;
+                                --local-download downloads its install here
   kero hosts remove|check <name>
   kero hosts install <name|address> [--version v]
                                 install Kero there, over SSH

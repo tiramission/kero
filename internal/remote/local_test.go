@@ -34,6 +34,17 @@ func TestParsePlatform(t *testing.T) {
 	}
 }
 
+func TestParseUnamesSkipsSSHWarnings(t *testing.T) {
+	const out = "Warning: Permanently added 'devbox' (ED25519) to the list of known hosts.\nLinux\nx86_64\n"
+	goos, goarch, err := parseUnames([]byte(out))
+	if err != nil || goos != "linux" || goarch != "amd64" {
+		t.Errorf("parseUnames with an SSH warning = %s/%s, %v", goos, goarch, err)
+	}
+	if _, _, err := parseUnames([]byte("Warning: Permanently added 'host' (ED25519) to the list of known hosts.\n")); err == nil {
+		t.Error("parseUnames accepted only a warning")
+	}
+}
+
 func TestFileURL(t *testing.T) {
 	for _, c := range []struct {
 		goos, path, want string
