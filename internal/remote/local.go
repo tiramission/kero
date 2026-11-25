@@ -131,7 +131,7 @@ func ProbePlatform(ctx context.Context, a Addr, batch bool) (string, string, err
 	switch a.Scheme {
 	case "ssh":
 		if Windows(a) {
-			script := `$a = $env:PROCESSOR_ARCHITECTURE; if ($env:PROCESSOR_ARCHITEW6432) { $a = $env:PROCESSOR_ARCHITEW6432 }; Write-Output ('windows/' + $a)`
+			script := `$a = $env:PROCESSOR_ARCHITECTURE; if ($env:PROCESSOR_ARCHITEW6432) { $a = $env:PROCESSOR_ARCHITEW6432 }; Write-Output 'windows'; Write-Output $a`
 			out, err = sshRun(ctx, a, batch, encodedPowerShell(script), nil)
 		} else {
 			out, err = sshRun(ctx, a, batch, "sh -c 'uname -s; uname -m'", nil)

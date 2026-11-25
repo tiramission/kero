@@ -2,6 +2,14 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.4
+
+- Fix the platform probe of a Windows host over SSH: PowerShell now prints
+  its OS and architecture as the two lines the probe reads, so installing
+  with **Download on This Computer** works on Windows too.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.3
 
 - Fix installing or updating a host over SSH when OpenSSH prints its

@@ -43,6 +43,10 @@ func TestParseUnamesSkipsSSHWarnings(t *testing.T) {
 	if _, _, err := parseUnames([]byte("Warning: Permanently added 'host' (ED25519) to the list of known hosts.\n")); err == nil {
 		t.Error("parseUnames accepted only a warning")
 	}
+	goos, goarch, err = parseUnames([]byte("windows\nAMD64\n"))
+	if err != nil || goos != "windows" || goarch != "amd64" {
+		t.Errorf("parseUnames with PowerShell's two lines = %s/%s, %v", goos, goarch, err)
+	}
 }
 
 func TestFileURL(t *testing.T) {
