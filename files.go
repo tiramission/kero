@@ -106,6 +106,15 @@ func (a *App) filesRoot(s *proto.Session) (*proto.Pane, string) {
 	return p, p.Dir
 }
 
+// toggleFilesHidden hides the entries Files marks hidden, or shows them,
+// and lists the folders again: a file's hidden attribute can change while
+// the tree is open, and the tree asked for its entries before then.
+func (a *App) toggleFilesHidden() {
+	a.prefs.FilesHidden = !a.prefs.FilesHidden
+	a.savePrefs()
+	a.side.files.gen++
+}
+
 // filesSide is the Files tab: the root's tree, a folder listed as it
 // unfolds, and again as the worktree changes.
 func (a *App) filesSide(c *ui.Context, pal *palette, s *proto.Session) {
@@ -189,10 +198,7 @@ func (a *App) filesSide(c *ui.Context, pal *palette, s *proto.Session) {
 		if hidden {
 			hiddenIcon, hiddenLabel = showHiddenIcon, locales.PickerShowHidden()
 		}
-		iconButton(c, "show-hidden", hiddenIcon, hiddenLabel, pal, func() {
-			a.prefs.FilesHidden = !a.prefs.FilesHidden
-			a.savePrefs()
-		})
+		iconButton(c, "show-hidden", hiddenIcon, hiddenLabel, pal, a.toggleFilesHidden)
 		iconButton(c, "new-file", newFileIcon, locales.FilesNewFile(), pal, func() { a.startCreate(s, p.ID, root, "", false) })
 		iconButton(c, "new-folder", newFolderIcon, locales.FilesNewFolder(), pal, func() { a.startCreate(s, p.ID, root, "", true) })
 		iconButton(c, "fold-folders", collapseIcon, locales.FilesCollapseFolders(), pal, func() {
@@ -316,8 +322,8 @@ func (a *App) treeEntry(c *ui.Context, pal *palette, it fileItem, current bool, 
 	return row
 }
 
-// fetchDir asks kerod for a folder's entries, dotfiles too, marking what
-// git ignores in a worktree.
+// fetchDir asks kerod for a folder's entries, hidden ones too, marking
+// what git ignores in a worktree.
 func (a *App) fetchDir(h *host, dir string, ignored bool, stamp string) *dirList {
 	fs := &a.side.files
 	key := filesKey(h, dir)
@@ -328,6 +334,7 @@ func (a *App) fetchDir(h *host, dir string, ignored bool, stamp string) *dirList
 	}
 	l.busy = true
 	gen, cl := fs.gen, h.cl
+	localWindows := !h.remote() && h.windows()
 	go func() {
 		var res proto.FSList
 		err := cl.Call("fs.list", proto.FSListParams{Dir: dir, Hidden: true, Ignored: ignored}, &res)
@@ -337,7 +344,22 @@ func (a *App) fetchDir(h *host, dir string, ignored bool, stamp string) *dirList
 				l.err = err.Error()
 				return
 			}
-			l.entries, l.err = res.Entries, ""
+			entries := res.Entries
+			// An older kerod may not send Windows' hidden attribute yet.
+			// For this machine, Files can read it itself until kerod is
+			// restarted onto the build that sends it.
+			if localWindows {
+				localDir := res.Dir
+				if localDir == "" {
+					localDir = dir
+				}
+				for i := range entries {
+					if !entries[i].Hidden && !strings.HasPrefix(entries[i].Name, ".") {
+						entries[i].Hidden = localHidden(localDir, entries[i].Name)
+					}
+				}
+			}
+			l.entries, l.err = entries, ""
 		})
 	}()
 	return l

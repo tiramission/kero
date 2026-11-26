@@ -2,6 +2,18 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.7
+
+- Files also hides Windows-hidden entries when its kerod is still an older
+  build that doesn't send the hidden attribute: on this machine, Files
+  reads the attribute itself, so an update takes effect before the daemon
+  restarts.
+- Its eye button lists the open folders again, so a file hidden or shown
+  while the tree is open is filtered as it is now, not as it was when the
+  folder was first listed.
+- The macOS app remains omitted while GitHub's macOS runners are congested;
+  the server packages for macOS and the other platforms are included.
+
 ## 2026.11.6
 
 - Releases publish themselves: once the builds, tests and asset check of

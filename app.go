@@ -58,8 +58,9 @@ type prefs struct {
 	SideTab    string  `json:"sideTab,omitempty"`
 	RightWidth float32 `json:"rightWidth,omitempty"`
 	SideWidth  float32 `json:"sideWidth,omitempty"`
-	// FilesHidden hides dotfiles in the Files tab, as the button in its
-	// header toggles. Off by default: Files has shown them.
+	// FilesHidden hides hidden entries in the Files tab — dotfiles and
+	// files Windows marks hidden — as the button in its header toggles.
+	// Off by default: Files has shown them.
 	FilesHidden bool `json:"filesHidden,omitempty"`
 	// EndedOpen and ArchivedOpen tell the sidebar's sections of the
 	// agents' ended conversations unfolded (session-history).
