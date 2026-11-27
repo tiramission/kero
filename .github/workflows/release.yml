@@ -62,6 +62,7 @@ jobs:
         include:
           - { name: Windows, os: ubuntu-latest, platform: "windows/amd64,windows/arm64" }
           - { name: Linux, os: ubuntu-latest, platform: "linux/amd64,linux/arm64" }
+          - { name: macOS, os: macos-latest, platform: "darwin/arm64,darwin/amd64" }
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
@@ -71,9 +72,9 @@ jobs:
         if: matrix.name == 'Windows'
         run: sudo apt-get update && sudo apt-get install -y nsis
       # This fork has no Developer ID certificate, so the macOS app is
-      # signed ad hoc: Gatekeeper blocks it on other Macs. Add back the
-      # step that imports the certificate, its notary credentials and
-      # macos.signingIdentity/notarize to sign and notarize it.
+      # signed ad hoc: Gatekeeper blocks it on other Macs. The macOS build
+      # still runs here, on a macOS runner; add the certificate and notary
+      # step back when one is available.
       - name: Build and upload
         env:
           GH_TOKEN: ${{ github.token }}

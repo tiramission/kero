@@ -2,6 +2,16 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.8
+
+- The macOS app is built and published again from the Release workflow.
+  This fork has no Developer ID certificate, so it is signed ad hoc:
+  Gatekeeper warns when it is opened on another Mac, and it is not
+  notarized. The server packages for macOS and the other platforms are
+  unchanged.
+- The app and server builds are checked together, as before, and the
+  release still publishes itself from `CHANGELOG.fork.md` once they pass.
+
 ## 2026.11.7
 
 - Files also hides Windows-hidden entries when its kerod is still an older

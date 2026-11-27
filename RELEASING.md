@@ -1,10 +1,10 @@
 # Releasing Kero
 
 A release is a tag: pushing `vX.Y.Z` runs the Release workflow
-(`.github/workflows/release.yml`), which builds the app for Windows and
-Linux, the server build for each platform, runs the tests, takes its notes
-from `CHANGELOG.fork.md`, and publishes the release once the assets are
-checked. There is no draft left to publish by hand.
+(`.github/workflows/release.yml`), which builds the app for macOS, Windows
+and Linux, the server build for each platform, runs the tests, takes its
+notes from `CHANGELOG.fork.md`, and publishes the release once the assets
+are checked. There is no draft left to publish by hand.
 
 ## Steps
 
