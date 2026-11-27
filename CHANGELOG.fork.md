@@ -2,6 +2,14 @@
 
 Fork releases of Kero. Upstream's changelog stays in `CHANGELOG.md`.
 
+## 2026.11.9
+
+- The Homebrew cask in `tiramission/homebrew-casks` now follows each
+  published release: its version and both DMG checksums are updated by the
+  Release workflow.
+- The macOS server packages are checked on macOS again, on Apple Silicon
+  and on Intel through Rosetta, instead of only being cross-built.
+
 ## 2026.11.8
 
 - The macOS app is built and published again from the Release workflow.
