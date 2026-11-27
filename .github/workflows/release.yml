@@ -185,3 +185,82 @@ jobs:
             exit 1
           fi
           gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --notes-file "$notes" --draft=false
+
+  # The cask in tiramission/homebrew-casks follows a published release with
+  # macOS DMGs. 2026.11.1 skipped them while macOS runners were congested;
+  # such a release leaves the cask alone instead of failing the workflow.
+  update-cask:
+    needs: [publish]
+    name: Update the Homebrew cask
+    runs-on: ubuntu-latest
+    concurrency:
+      group: update-cask
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: source
+
+      - uses: actions/checkout@v7
+        with:
+          repository: tiramission/homebrew-casks
+          ref: main
+          path: casks
+          fetch-depth: 0
+          ssh-key: ${{ secrets.CASK_REPO_DEPLOY_KEY }}
+
+      - name: Update Casks/kero.rb
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git -C casks checkout -B main origin/main
+          version="$(jq -r .version source/mygo.json)"
+          tag="v$version"
+          arm_asset="kero-$version-arm64.dmg"
+          intel_asset="kero-$version-amd64.dmg"
+          names="$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')"
+          if ! grep -qxF "$arm_asset" <<< "$names" || ! grep -qxF "$intel_asset" <<< "$names"; then
+            echo "::warning::$tag has no macOS DMGs; leaving the cask alone."
+            exit 0
+          fi
+          assets="$RUNNER_TEMP/kero-cask-assets"
+          mkdir -p "$assets"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" \
+            --pattern "$arm_asset" --pattern "$intel_asset" \
+            --dir "$assets"
+          arm="$(sha256sum "$assets/$arm_asset" | cut -d' ' -f1)"
+          intel="$(sha256sum "$assets/$intel_asset" | cut -d' ' -f1)"
+          python3 - "$version" "$arm" "$intel" <<'PY'
+          import pathlib, re, sys
+          version, arm, intel = sys.argv[1:]
+          path = pathlib.Path("casks/Casks/kero.rb")
+          text = path.read_text().replace("\r\n", "\n")
+          before = text
+          text = re.sub(r'  version "[^"]+"', f'  version "{version}"', text, count=1)
+          text = re.sub(
+              r'  sha256 arm:\s+"[0-9a-f]{64}",\n         intel: "[0-9a-f]{64}"',
+              f'  sha256 arm:   "{arm}",\n         intel: "{intel}"',
+              text,
+              count=1,
+          )
+          if text == before:
+              if f'version "{version}"' not in text or arm not in text or intel not in text:
+                  raise SystemExit("the cask did not change")
+              print("The cask already has this version and hashes.")
+          else:
+              path.write_text(text)
+          PY
+          git -C casks config user.name "github-actions[bot]"
+          git -C casks config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C casks add Casks/kero.rb
+          if git -C casks diff --cached --quiet; then
+            echo "Casks/kero.rb already has $tag."
+            exit 0
+          fi
+          git -C casks commit -m "Update Kero to $version"
+          git -C casks pull --rebase origin main
+          git -C casks push origin main
+

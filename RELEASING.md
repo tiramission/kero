@@ -6,6 +6,11 @@ and Linux, the server build for each platform, runs the tests, takes its
 notes from `CHANGELOG.fork.md`, and publishes the release once the assets
 are checked. There is no draft left to publish by hand.
 
+After publishing, the `update-cask` job updates the `Casks/kero.rb` in
+`tiramission/homebrew-casks` with this release's macOS DMGs. It authenticates
+with the `CASK_REPO_DEPLOY_KEY` secret, a write deploy key for that repo. A
+release without macOS DMGs, as 2026.11.1 had, leaves the cask unchanged.
+
 ## Steps
 
 1. Pick the version: a patch (2.1.4 → 2.1.5) for fixes and small
